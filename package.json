@@ -1,0 +1,22 @@
+{
+  "name": "enrollment-portal-2025",
+  "version": "1.0.0",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "keywords": [],
+  "author": "IEEE VIT",
+  "type": "module",
+  "license": "ISC",
+  "description": "IEEE VIT Enrollment 2025",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.10.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
