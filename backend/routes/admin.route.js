@@ -1,15 +1,15 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import authenticateFirebaseUser from "../middleware/auth.middleware.js";
-import User from "../models/user.model.js";
+import Admin from "../models/admin.model.js";
 
 const router = express.Router();
 
-const generateTokens = (userId) => {
-  const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
+const generateTokens = (adminId) => {
+  const accessToken = jwt.sign({ adminId }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
   });
-  const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
+  const refreshToken = jwt.sign({ adminId }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "7d",
   });
   return { accessToken, refreshToken };
@@ -42,26 +42,24 @@ router.post("/login", authenticateFirebaseUser, async (req, res) => {
   }
   const regNoIndex = name.lastIndexOf(" ");
   const userName = name.slice(0, regNoIndex).trim();
-  const regNo = name.slice(regNoIndex + 1).trim();
-  const isFresher = regNo.startsWith("24");
   try {
-    const currentUser = await User.findOne({ email });
-    let user;
-    if (currentUser) {
-      user = currentUser;
+    const currentAdmin = await Admin.findOne({ email });
+    let admin;
+    if (currentAdmin) {
+      admin = currentAdmin;
     } else {
-      user = await User.create({ name: userName, email, isFresher });
+      admin = await Admin.create({ name: userName, email });
     }
-    const { accessToken, refreshToken } = generateTokens(user._id);
+    const { accessToken, refreshToken } = generateTokens(admin._id);
     const expiresAt = new Date();
     expiresAt.setSeconds(expiresAt.getSeconds() + 60 * 60 * 24 * 7);
-    user.refreshToken = refreshToken;
-    user.refreshTokenExpiresAt = expiresAt;
-    await user.save();
+    admin.refreshToken = refreshToken;
+    admin.refreshTokenExpiresAt = expiresAt;
+    await admin.save();
     setCookies(res, accessToken, refreshToken);
     return res
-      .status(currentUser ? 200 : 201)
-      .json({ name: user.name, email: user.email });
+      .status(currentAdmin ? 200 : 201)
+      .json({ name: admin.name, email: admin.email });
   } catch (error) {
     console.error(`Error logging in: ${error.message}`);
     return res

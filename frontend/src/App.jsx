@@ -1,10 +1,15 @@
+import { Route, Routes } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
+
 function App() {
   return (
-    <>
-      <h1 className="text-2xl text-center font-bold">
-        IEEE VIT Enrollment 2025
-      </h1>
-    </>
+    <div>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/thedarkside" element={<AdminLoginPage />} />
+      </Routes>
+    </div>
   );
 }
 
