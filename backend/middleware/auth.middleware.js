@@ -7,7 +7,9 @@ import User from "../models/user.model.js";
 export const authenticateFirebaseUser = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized access denied" });
+    return res
+      .status(401)
+      .json({ success: false, message: "Unauthorized access denied" });
   }
   const token = authHeader.split(" ")[1];
   try {
@@ -15,65 +17,97 @@ export const authenticateFirebaseUser = async (req, res, next) => {
     req.user = decodedToken;
     next();
   } catch (err) {
-    console.error(`Firebase Authentication Error: ${err.message}`);
-    return res.status(401).json({ message: "Unauthorized access denied" });
+    console.error(`Error authenticating firebase user: ${err.message}`);
+    return res
+      .status(401)
+      .json({ success: false, message: "Unauthorized access denied" });
   }
 };
 
-// Middleware to authenticate user
+// Middleware to check if user is authenticated
 export const protectUserRoute = async (req, res, next) => {
   try {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
-      return res.status(401).json({ message: "Unauthorized access denied" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized access denied" });
     }
     try {
       const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
       const user = await User.findById(decoded.userId);
       if (!user) {
-        return res.status(401).json({ message: "User not found" });
+        return res
+          .status(401)
+          .json({ success: false, message: "User not found" });
       }
       req.user = user;
       next();
     } catch (err) {
       if (err.name === "TokenExpiredError") {
-        return res.status(401).json({ message: "Unauthorized access denied" });
+        return res
+          .status(401)
+          .json({ success: false, message: "Access token expired" });
       }
       throw err;
     }
   } catch (err) {
-    console.error(`Protect User Route Error: ${err.message}`);
+    console.error(`Error protecting user route: ${err.message}`);
     return res
       .status(500)
-      .json({ message: "Server error", error: err.message });
+      .json({ success: false, message: "Server error", error: err.message });
   }
 };
 
-// Middleware to authenticate admin
+// Middleware to check if admin is authenticated
 export const protectAdminRoute = async (req, res, next) => {
   try {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
-      return res.status(401).json({ message: "Unauthorized access denied" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized access denied" });
     }
     try {
       const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
       const admin = await Admin.findById(decoded.adminId);
       if (!admin) {
-        return res.status(401).json({ message: "Admin not found" });
+        return res
+          .status(401)
+          .json({ success: false, message: "Admin not found" });
       }
       req.user = admin;
       next();
     } catch (err) {
       if (err.name === "TokenExpiredError") {
-        return res.status(401).json({ message: "Unauthorized access denied" });
+        return res
+          .status(401)
+          .json({ success: false, message: "Access token expired" });
       }
       throw err;
     }
   } catch (err) {
-    console.error(`Protect Admin Route Error: ${err.message}`);
+    console.error(`Error protecting admin route: ${err.message}`);
     return res
       .status(500)
-      .json({ message: "Server error", error: err.message });
+      .json({ success: false, message: "Server error", error: err.message });
+  }
+};
+
+// Middleware to check if superadmin is authenticated
+export const protectSuperadminRoute = async (req, res, next) => {
+  try {
+    const admin = req.user;
+    if (!admin.access) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized access denied" });
+    }
+    next();
+  } catch (err) {
+    console.error(`Error protecting super admin route: ${err.message}`);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: err.message });
   }
 };

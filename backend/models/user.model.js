@@ -25,111 +25,139 @@ const userSchema = new mongoose.Schema(
       type: Number,
       min: 0,
       max: 3,
+      default: 0,
     },
     round0: {
       contactNo: {
         type: Number,
-        unique: true,
         match: [/^[6789]\d{9}$/, "Invalid contact number"],
+        default: null,
       },
       branch: {
         type: String,
+        default: null,
       },
       githubProfile: {
         type: String,
-        unique: true,
         match: [
           /^https:\/\/github\.com\/[a-zA-Z0-9](?:[a-zA-Z0-9-_]{0,38}[a-zA-Z0-9])?$/,
           "Invalid github profile",
         ],
+        default: null,
       },
       projectLink: {
         type: String,
-        unique: true,
+        default: null,
       },
       projectText: {
         type: String,
+        default: null,
       },
       domain: {
         type: [String],
+        default: [],
       },
-      question1: {
+      answer1: {
         type: String,
+        default: null,
       },
-      question2: {
+      answer2: {
         type: String,
+        default: null,
       },
-      question3: {
+      answer3: {
         type: String,
+        default: null,
       },
-      question4: {
+      answer4: {
         type: String,
+        default: null,
       },
-      question5: {
+      answer5: {
         type: String,
+        default: null,
       },
-      // question6: {
+      // answer6: {
       //   type: String,
+      //   default: null,
       // },
       managementQuestion: {
+        type: Number,
+        min: 1,
+        max: 5,
+        default: null,
+      },
+      managementAnswer: {
         type: String,
+        default: null,
+      },
+      status: {
+        type: String,
+        enum: ["pending", "completed"],
+        default: "pending",
       },
     },
     rounds: {
       round1: {
         review: {
           type: String,
+          default: null,
         },
         taskTitle: {
           type: String,
+          default: null,
         },
         taskDescription: {
           type: String,
+          default: null,
         },
         taskLink: {
           type: String,
-          unique: true,
+          default: null,
         },
         status: {
           type: String,
-          enum: ["Pending", "Completed", "Upcoming"],
-          default: "Upcoming",
+          enum: ["upcoming", "pending", "completed"],
+          default: "upcoming",
         },
       },
       round2: {
         review: {
           type: String,
+          default: null,
         },
         taskTitle: {
           type: String,
+          default: null,
         },
         taskDescription: {
           type: String,
+          default: null,
         },
         taskLink: {
           type: String,
-          unique: true,
+          default: null,
         },
         status: {
           type: String,
-          enum: ["Pending", "Completed", "Upcoming"],
-          default: "Upcoming",
+          enum: ["upcoming", "pending", "completed"],
+          default: "upcoming",
         },
       },
       round3: {
         review: {
           type: String,
+          default: null,
         },
         status: {
           type: String,
-          enum: ["Pending", "Completed", "Upcoming"],
-          default: "Upcoming",
+          enum: ["upcoming", "pending", "completed"],
+          default: "upcoming",
         },
       },
     },
     refreshToken: {
       type: String,
-      unique: true,
     },
     refreshTokenExpiresAt: {
       type: Date,

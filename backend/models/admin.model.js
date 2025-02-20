@@ -13,9 +13,16 @@ const adminSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    meetLink: {
+      type: String,
+      default: null,
+    },
+    access: {
+      type: Boolean,
+      default: false,
+    },
     refreshToken: {
       type: String,
-      unique: true,
     },
     refreshTokenExpiresAt: {
       type: Date,

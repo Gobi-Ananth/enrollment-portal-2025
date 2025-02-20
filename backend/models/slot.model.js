@@ -15,12 +15,10 @@ const slotSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    meetLink: {
-      type: String,
-    },
     user: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
+      default: [],
     },
     isReady: {
       type: Boolean,
@@ -29,10 +27,16 @@ const slotSchema = new mongoose.Schema(
     admins: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Admin",
+      default: [],
+    },
+    reviewer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
+      default: null,
     },
     status: {
       type: String,
-      enum: ["pending", "completed", "upcoming"],
+      enum: ["upcoming", "pending", "completed"],
       default: "upcoming",
     },
   },
