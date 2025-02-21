@@ -73,6 +73,7 @@ router.post(
       return res.status(currentAdmin ? 200 : 201).json({
         success: true,
         data: {
+          _id: admin._id,
           name: admin.name,
           email: admin.email,
           meetLink: admin.meetLink,
@@ -80,7 +81,6 @@ router.post(
         },
       });
     } catch (err) {
-      console.error(`Error logging in admin: ${err.message}`);
       return res
         .status(500)
         .json({ success: false, message: "Server error", error: err.message });
@@ -107,7 +107,6 @@ router.post("/logout", async (req, res) => {
       .status(200)
       .json({ success: true, message: "Logged out successfully" });
   } catch (err) {
-    console.error(`Error logging out admin: ${err.message}`);
     return res.status(500).json({ message: "Server error", err: err.message });
   }
 });
@@ -140,7 +139,28 @@ router.post("/refresh-token", async (req, res) => {
     });
     return res.status(200).json({ success: true, message: "Token refreshed" });
   } catch (err) {
-    console.error(`Error refreshing admin access token: ${err.message}`);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: err.message });
+  }
+});
+
+// Meet link submission
+router.post("/meetlink-submission", protectAdminRoute, async (req, res) => {
+  try {
+    const { meetLink } = req.body;
+    if (!meetLink || meetLink.trim().length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Meet link is required" });
+    }
+    const admin = req.user;
+    admin.meetLink = meetLink;
+    await admin.save(); // Await the save operation
+    return res
+      .status(200)
+      .json({ success: true, message: "Meet link submitted successfully" });
+  } catch (err) {
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });
@@ -154,6 +174,7 @@ router.get("/", protectAdminRoute, async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
+        _id: admin._id,
         name: admin.name,
         email: admin.email,
         meetLink: admin.meetLink,
@@ -161,7 +182,6 @@ router.get("/", protectAdminRoute, async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(`Error getting admin data: ${err.message}`);
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });
@@ -176,30 +196,254 @@ router.post(
   async (req, res) => {
     try {
       const { round, time } = req.body;
-      if (!round || !time) {
+      if (!round || ![1, 2, 3].includes(round)) {
         return res
           .status(400)
-          .json({ success: false, message: "Round and time are required" });
+          .json({ success: false, message: "Invalid or missing round number" });
       }
-      if (![1, 2, 3].includes(round)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid round number" });
+      if (!time || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid time format. Use HH:mm (24-hour format)",
+        });
       }
-      const newSlot = new Slot({ round, time });
+      const formattedTime = new Date(`1970-01-01T${time}:00Z`);
+      const newSlot = new Slot({ round, time: formattedTime });
       await newSlot.save();
       return res.status(201).json({
         success: true,
         message: "Slot created successfully",
       });
     } catch (err) {
-      console.error(`Error creating slot: ${err.message}`);
       return res
         .status(500)
         .json({ success: false, message: "Server error", error: err.message });
     }
   }
 );
+
+// Taking a slot
+router.put("/take-slot/:slotId", protectAdminRoute, async (req, res) => {
+  const { slotId } = req.params;
+  const admin = req.user;
+  if (!mongoose.Types.ObjectId.isValid(slotId)) {
+    return res.status(400).json({ success: false, message: "Invalid slot ID" });
+  }
+  if (!admin.meetLink) {
+    return res.status(400).json({
+      success: false,
+      message: "Meet link not found in admin profile",
+    });
+  }
+  try {
+    const slot = await Slot.findOneAndUpdate(
+      { _id: slotId, reviewer: null },
+      { reviewer: admin._id, meetLink: admin.meetLink },
+      { new: true }
+    )
+      .populate("users", "name email currentRound round0 rounds")
+      .populate("admins", "name")
+      .populate("reviewer", "name");
+    if (!slot) {
+      return res.status(404).json({
+        success: false,
+        message: "Slot not found or already has a reviewer assigned",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Reviewer assigned successfully",
+      data: slot,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
+  }
+});
+
+// Join slot
+router.put("/join-slot/:slotId", protectAdminRoute, async (req, res) => {
+  const { slotId } = req.params;
+  const adminId = req.user._id;
+  if (!mongoose.Types.ObjectId.isValid(slotId)) {
+    return res.status(400).json({ success: false, message: "Invalid slot ID" });
+  }
+  try {
+    const slot = await Slot.findById(slotId)
+      .populate("users", "name email currentRound round0 rounds")
+      .populate("admins", "name")
+      .populate("reviewer", "name");
+    if (!slot) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Slot not found" });
+    }
+    if (!slot.reviewer) {
+      return res.status(400).json({
+        success: false,
+        message: "Slot does not have a reviewer yet",
+      });
+    }
+    if (slot.admins.some((id) => id.toString() === adminId.toString())) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin is already assigned to this slot",
+      });
+    }
+    slot.admins.push(adminId);
+    await slot.save();
+    return res.status(200).json({
+      success: true,
+      message: "Admin added to the slot successfully",
+      data: slot,
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: err.message });
+  }
+});
+
+// Review slots
+router.get("/review-slots", protectAdminRoute, async (req, res) => {
+  const adminId = req.user._id;
+  try {
+    const slots = await Slot.find({ reviewer: adminId })
+      .populate({
+        path: "users",
+        select: "_id name rounds",
+      })
+      .lean();
+    const filteredSlots = slots.filter((slot) => {
+      return slot.users?.some((user) => {
+        const rounds = user.rounds || {};
+        if (slot.round === 1) return !rounds.round1?.review;
+        if (slot.round === 2) return !rounds.round2?.review;
+        if (slot.round === 3) return !rounds.round3?.review;
+        return false;
+      });
+    });
+    return res.status(200).json({
+      success: true,
+      message: "Slots pending review found",
+      data: filteredSlots.map((slot) => ({
+        _id: slot._id,
+        round: slot.round,
+        time: slot.time,
+        users:
+          slot.users?.map((user) => ({
+            _id: user._id,
+            name: user.name,
+          })) || [],
+        reviewer: slot.reviewer,
+        status: slot.status,
+      })),
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: err.message });
+  }
+});
+
+// Review submission
+router.post(
+  "/review-submission/:slotId/:userId",
+  protectAdminRoute,
+  async (req, res) => {
+    const { slotId, userId } = req.params;
+    const { review } = req.body;
+    if (!review?.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Review is required" });
+    }
+    if (
+      !mongoose.Types.ObjectId.isValid(slotId) ||
+      !mongoose.Types.ObjectId.isValid(userId)
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid slot ID or user ID" });
+    }
+    try {
+      const slot = await Slot.findById(slotId).populate("users", "_id");
+      if (!slot) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Slot not found" });
+      }
+      const userExists = slot.users.some(
+        (user) => user._id.toString() === userId
+      );
+      if (!userExists) {
+        return res
+          .status(403)
+          .json({ success: false, message: "User is not part of this slot" });
+      }
+      const roundKey = `rounds.round${slot.round}.review`;
+      if (
+        ![
+          "rounds.round1.review",
+          "rounds.round2.review",
+          "rounds.round3.review",
+        ].includes(roundKey)
+      ) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid round number in slot" });
+      }
+      await User.updateOne({ _id: userId }, { $set: { [roundKey]: review } });
+      return res.status(200).json({
+        success: true,
+        message: "Review submitted successfully",
+      });
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+);
+
+// Get slots
+router.get("/get-slots", protectAdminRoute, async (req, res) => {
+  try {
+    const { roundNo, status } = req.body;
+    if (![1, 2, 3].includes(Number(roundNo))) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid round number. Must be 1, 2, or 3.",
+      });
+    }
+    const validStatuses = ["pending", "ready", "completed"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Use 'pending', 'ready', or 'completed'.",
+      });
+    }
+    const filter = {
+      round: Number(roundNo),
+      status: status === "ready" ? "pending" : status,
+      ...(status === "ready" && { isReady: true }),
+    };
+    const slots = await Slot.find(filter);
+    return res.status(200).json({
+      success: true,
+      data: slots,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
+  }
+});
 
 // Eliminate non freshers (superadmin only)
 router.put(
@@ -218,7 +462,6 @@ router.put(
         modifiedCount: result.modifiedCount,
       });
     } catch (err) {
-      console.error(`Error eliminating non freshers: ${err.message}`);
       return res
         .status(500)
         .json({ success: false, message: "Server error", error: err.message });
@@ -243,7 +486,6 @@ router.put(
 //         modifiedCount: result.modifiedCount,
 //       });
 //     } catch (err) {
-//       console.error(`Error in round 1 elimination: ${err.message}`);
 //       return res
 //         .status(500)
 //         .json({ success: false, message: "Server error", error: err.message });
@@ -268,7 +510,6 @@ router.put(
 //         modifiedCount: result.modifiedCount,
 //       });
 //     } catch (err) {
-//       console.error(`Error in round 2 elimination: ${err.message}`);
 //       return res
 //         .status(500)
 //         .json({ success: false, message: "Server error", error: err.message });

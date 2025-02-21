@@ -73,6 +73,7 @@ router.post(
       return res.status(currentUser ? 200 : 201).json({
         success: true,
         data: {
+          _id: user._id,
           name: user.name,
           email: user.email,
           isEliminated: user.isEliminated,
@@ -84,7 +85,6 @@ router.post(
         },
       });
     } catch (err) {
-      console.error(`Error logging in user: ${err.message}`);
       return res
         .status(500)
         .json({ success: false, message: "Server error", error: err.message });
@@ -111,7 +111,6 @@ router.post("/logout", async (req, res) => {
       .status(200)
       .json({ success: true, message: "Logged out successfully" });
   } catch (err) {
-    console.error(`Error logging out user: ${err.message}`);
     return res
       .status(500)
       .json({ success: false, message: "Server error", err: err.message });
@@ -149,7 +148,6 @@ router.post("/refresh-token", async (req, res) => {
       .status(200)
       .json({ success: true, message: "Token refreshed successfully" });
   } catch (err) {
-    console.error(`Error refreshing user access token: ${err.message}`);
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });
@@ -163,6 +161,7 @@ router.get("/", protectUserRoute, async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
+        _id: user._id,
         name: user.name,
         email: user.email,
         isEliminated: user.isEliminated,
@@ -174,7 +173,6 @@ router.get("/", protectUserRoute, async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(`Error getting user data: ${err.message}`);
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });
@@ -201,9 +199,10 @@ router.post("/round0-submission", protectUserRoute, async (req, res) => {
       managementAnswer,
     } = req.body;
     if (!contactNo || !/^[6789]\d{9}$/.test(contactNo)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Valid contact number is required" });
+      return res.status(400).json({
+        success: false,
+        message: "Valid Indian contact number is required",
+      });
     }
     if (!branch || branch.trim().length === 0) {
       return res
@@ -212,7 +211,7 @@ router.post("/round0-submission", protectUserRoute, async (req, res) => {
     }
     if (
       githubProfile &&
-      !/^https:\/\/github\.com\/[a-zA-Z0-9-_]+$/.test(githubProfile)
+      !/^https:\/\/github\.com\/[a-zA-Z0-9-_.]+$/.test(githubProfile)
     ) {
       return res
         .status(400)
@@ -221,7 +220,7 @@ router.post("/round0-submission", protectUserRoute, async (req, res) => {
     if (!domain || !Array.isArray(domain) || domain.length === 0) {
       return res
         .status(400)
-        .json({ success: false, message: "Domain is required" });
+        .json({ success: false, message: "Domain selection is required" });
     }
     if (!managementQuestion) {
       return res
@@ -245,9 +244,9 @@ router.post("/round0-submission", protectUserRoute, async (req, res) => {
       user.round0 = {
         contactNo,
         branch,
-        githubProfile: githubProfile ? githubProfile : null,
-        projectLink: projectLink ? projectLink : null,
-        projectText: projectText ? projectText : null,
+        githubProfile: githubProfile || null,
+        projectLink: projectLink || null,
+        projectText: projectText || null,
         domain,
         answer1,
         answer2,
@@ -271,15 +270,57 @@ router.post("/round0-submission", protectUserRoute, async (req, res) => {
       });
     }
   } catch (err) {
-    console.error(`Error submitting round 0: ${err.message}`);
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });
   }
 });
 
+// Get all available slots
+router.get(
+  "/get-available-slots/:roundNo",
+  protectUserRoute,
+  async (req, res) => {
+    let { roundNo } = req.params;
+    const user = req.user;
+    roundNo = parseInt(roundNo);
+    if (isNaN(roundNo) || roundNo < 1 || roundNo > 3) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid round number. Must be 1, 2, or 3.",
+      });
+    }
+    if (
+      user.rounds[`round${roundNo}`]?.status === "completed" ||
+      user.rounds[`round${roundNo}`]?.status === "pending"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: `You cannot book a slot for round ${roundNo} as it is already ${
+          user.rounds[`round${roundNo}`].status
+        }.`,
+      });
+    }
+    try {
+      const currentTime = new Date();
+      const slots = await Slot.find({
+        round: roundNo,
+        isAvailable: true,
+        slotTime: { $gt: currentTime },
+      });
+      return res
+        .status(200)
+        .json({ success: true, totalSlots: slots.length, data: slots });
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+);
+
 // Slot selection by user
-router.put("/select/:slotId", protectUserRoute, async (req, res) => {
+router.put("/select-slot/:slotId", protectUserRoute, async (req, res) => {
   try {
     const user = req.user;
     const { slotId } = req.params;
@@ -291,51 +332,92 @@ router.put("/select/:slotId", protectUserRoute, async (req, res) => {
       return res.status(400).json({ message: "Slot is not available" });
     }
     const max = 3;
+    if (!slot.users) {
+      slot.users = [];
+    }
     if (slot.round === 1) {
-      if (user.rounds.round1.status === "completed") {
+      if (["completed", "pending"].includes(user.rounds.round1.status)) {
         return res
           .status(400)
-          .json({ success: false, message: "You have completed round 1" });
+          .json({ success: false, message: "You have already booked a slot" });
       }
-      slot.user = [user._id];
+      slot.users = [user._id];
       slot.isAvailable = false;
+      user.rounds.round1.status = "pending";
     } else if (slot.round === 2) {
-      if (user.rounds.round2.status === "completed") {
-        return res.status(400).json({
-          success: false,
-          message: "You have completed round 2",
-        });
+      if (["completed", "pending"].includes(user.rounds.round2.status)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "You have already booked a slot" });
       }
-      if (!slot.user.includes(user._id)) {
-        if (slot.user.length < max) {
-          slot.user.push(user._id);
-          if (slot.user.length === max) {
-            slot.isAvailable = false;
-          }
+      if (!slot.users.includes(user._id)) {
+        if (slot.users.length < max) {
+          slot.users.push(user._id);
+          slot.isAvailable = slot.users.length < max;
+          user.rounds.round2.status = "pending";
         } else {
           return res.status(400).json({ message: "Slot is full" });
         }
       }
     } else if (slot.round === 3) {
-      if (user.rounds.round3.status === "completed") {
-        return res.status(400).json({
-          success: false,
-          message: "You have completed round 3",
-        });
+      if (["completed", "pending"].includes(user.rounds.round3.status)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "You have already booked a slot" });
       }
-      slot.user = [user._id];
+      slot.users = [user._id];
       slot.isAvailable = false;
+      user.rounds.round3.status = "pending";
     }
     await slot.save();
+    await user.save();
     res.status(200).json({
       success: true,
       message: "Slot successfully selected",
     });
   } catch (err) {
-    console.error(`Error selecting slot: ${err.message}`);
     res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });
+  }
+});
+
+// Ready
+router.post("/slot-ready/:slotId", protectUserRoute, async (req, res) => {
+  try {
+    const { slotId } = req.params;
+    const userId = req.user._id;
+    if (!mongoose.Types.ObjectId.isValid(slotId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid slot ID",
+      });
+    }
+    const slot = await Slot.findById(slotId);
+    if (!slot) {
+      return res.status(404).json({
+        success: false,
+        message: "Slot not found",
+      });
+    }
+    if (!slot.users.includes(userId.toString())) {
+      return res.status(403).json({
+        success: false,
+        message: "User is not part of this slot",
+      });
+    }
+    slot.isReady = true;
+    await slot.save();
+    return res.status(200).json({
+      success: true,
+      message: "Slot is now marked as ready",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
   }
 });
 
@@ -344,39 +426,32 @@ router.post("/task-submission", protectUserRoute, async (req, res) => {
   try {
     const user = req.user;
     const { taskLink } = req.body;
-    console.log(taskLink);
-    if (!taskLink || taskLink.trim().length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Task link is required" });
+    if (!taskLink?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Task link is required",
+      });
     }
-    if (user.currentRound === 1) {
-      user.rounds.round1.taskLink = taskLink;
-      user.currentRound = 2;
-      await user.save();
-      return res.status(200).json({
-        success: true,
-        message: "Round 1 task submission successful",
-      });
-    } else if (user.currentRound === 2) {
-      user.rounds.round2.taskLink = taskLink;
-      user.currentRound = 3;
-      await user.save();
-      return res.status(200).json({
-        success: true,
-        message: "Round 2 task submission successful",
-      });
-    } else {
+    const roundKey = `rounds.round${user.currentRound}.taskLink`;
+    if (user.currentRound > 2 || user.currentRound < 1) {
       return res.status(400).json({
         success: false,
         message: "You are not eligible for task submission",
       });
     }
+    user.set(roundKey, taskLink);
+    user.currentRound += 1;
+    await user.save();
+    return res.status(200).json({
+      success: true,
+      message: `Round ${user.currentRound - 1} task submission successful`,
+    });
   } catch (err) {
-    console.error(`Error submitting task: ${err}`);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error", error: err.message });
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
   }
 });
 

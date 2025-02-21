@@ -15,7 +15,11 @@ const slotSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    user: {
+    meetLink: {
+      type: String,
+      default: null,
+    },
+    users: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
       default: [],
