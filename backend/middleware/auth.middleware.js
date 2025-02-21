@@ -17,7 +17,6 @@ export const authenticateFirebaseUser = async (req, res, next) => {
     req.user = decodedToken;
     next();
   } catch (err) {
-    console.error(`Error authenticating firebase user: ${err.message}`);
     return res
       .status(401)
       .json({ success: false, message: "Unauthorized access denied" });
@@ -52,7 +51,6 @@ export const protectUserRoute = async (req, res, next) => {
       throw err;
     }
   } catch (err) {
-    console.error(`Error protecting user route: ${err.message}`);
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });
@@ -87,7 +85,6 @@ export const protectAdminRoute = async (req, res, next) => {
       throw err;
     }
   } catch (err) {
-    console.error(`Error protecting admin route: ${err.message}`);
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });
@@ -105,7 +102,6 @@ export const protectSuperadminRoute = async (req, res, next) => {
     }
     next();
   } catch (err) {
-    console.error(`Error protecting super admin route: ${err.message}`);
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });

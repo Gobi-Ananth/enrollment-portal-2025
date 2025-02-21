@@ -8,6 +8,7 @@ import {
 import Admin from "../models/admin.model.js";
 import User from "../models/user.model.js";
 import Slot from "../models/slot.model.js";
+import sendMail from "../lib/mail.js";
 
 const router = express.Router();
 
@@ -156,7 +157,7 @@ router.post("/meetlink-submission", protectAdminRoute, async (req, res) => {
     }
     const admin = req.user;
     admin.meetLink = meetLink;
-    await admin.save(); // Await the save operation
+    await admin.save();
     return res
       .status(200)
       .json({ success: true, message: "Meet link submitted successfully" });
@@ -250,17 +251,19 @@ router.put("/take-slot/:slotId", protectAdminRoute, async (req, res) => {
         message: "Slot not found or already has a reviewer assigned",
       });
     }
+    const userEmails = slot.users.map((user) => user.email);
+    const subject = "Your Interview Slot Details";
+    const message = `<div style="font-family: Arial, sans-serif; padding: 10px;"><h2 style="color: #007bff;">Interview Slot Confirmation</h2><p>Hello,</p><p>Your interview slot has been confirmed. Below are the details:</p><p><strong>Meet Link:</strong> <a href="${slot.meetLink}" style="color: #28a745; text-decoration: none;">Join Meeting</a></p><p>Please join on time. Wishing you all the best!</p><br><p>Regards,</p><p><strong>Admin Team</strong></p></div>`;
+    userEmails.forEach((email) => sendMail(email, subject, message));
     return res.status(200).json({
       success: true,
-      message: "Reviewer assigned successfully",
+      message: "Reviewer assigned successfully and email sent",
       data: slot,
     });
   } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: err.message,
-    });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: err.message });
   }
 });
 
@@ -384,19 +387,20 @@ router.post(
           .status(403)
           .json({ success: false, message: "User is not part of this slot" });
       }
-      const roundKey = `rounds.round${slot.round}.review`;
+      const roundKey = `rounds.round${slot.round}`;
       if (
-        ![
-          "rounds.round1.review",
-          "rounds.round2.review",
-          "rounds.round3.review",
-        ].includes(roundKey)
+        !["rounds.round1", "rounds.round2", "rounds.round3"].includes(roundKey)
       ) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid round number in slot" });
       }
-      await User.updateOne({ _id: userId }, { $set: { [roundKey]: review } });
+      const roundKeyReview = `${roundKey}.review`;
+      const roundKeyStatus = `${roundKey}.status`;
+      await User.updateOne(
+        { _id: userId },
+        { $set: { [roundKeyReview]: review, [roundKeyStatus]: "completed" } }
+      );
       return res.status(200).json({
         success: true,
         message: "Review submitted successfully",

@@ -324,6 +324,11 @@ router.put("/select-slot/:slotId", protectUserRoute, async (req, res) => {
   try {
     const user = req.user;
     const { slotId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(slotId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid slot ID" });
+    }
     const slot = await Slot.findById(slotId);
     if (!slot) {
       return res.status(404).json({ message: "Slot not found" });
@@ -379,6 +384,38 @@ router.put("/select-slot/:slotId", protectUserRoute, async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Server error", error: err.message });
+  }
+});
+
+// Get slot details
+router.get("/get-slot-data/:roundNo", protectUserRoute, async (req, res) => {
+  try {
+    const { roundNo } = req.params;
+    const userId = req.user._id;
+    const validRounds = [1, 2, 3];
+    if (!validRounds.includes(parseInt(roundNo))) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid round number. Must be 1, 2, or 3.",
+      });
+    }
+    const slot = await Slot.findOne({ round: roundNo, users: userId });
+    if (!slot) {
+      return res.status(404).json({
+        success: false,
+        message: "No slot found for this round and user",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: slot,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
   }
 });
 
