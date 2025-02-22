@@ -9,6 +9,7 @@ import Admin from "../models/admin.model.js";
 import User from "../models/user.model.js";
 import Slot from "../models/slot.model.js";
 import sendMail from "../lib/mail.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
@@ -435,6 +436,7 @@ router.get("/get-slots", protectAdminRoute, async (req, res) => {
       status: status === "ready" ? "pending" : status,
       ...(status === "ready" && { isReady: true }),
     };
+    console.log(filter)
     const slots = await Slot.find(filter);
     return res.status(200).json({
       success: true,

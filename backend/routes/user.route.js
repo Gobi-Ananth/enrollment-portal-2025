@@ -6,6 +6,7 @@ import {
 } from "../middleware/auth.middleware.js";
 import User from "../models/user.model.js";
 import Slot from "../models/slot.model.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
@@ -306,7 +307,7 @@ router.get(
       const slots = await Slot.find({
         round: roundNo,
         isAvailable: true,
-        slotTime: { $gt: currentTime },
+        // slotTime: { $gt: currentTime },
       });
       return res
         .status(200)
@@ -348,6 +349,7 @@ router.put("/select-slot/:slotId", protectUserRoute, async (req, res) => {
       }
       slot.users = [user._id];
       slot.isAvailable = false;
+      slot.status = "pending";
       user.rounds.round1.status = "pending";
     } else if (slot.round === 2) {
       if (["completed", "pending"].includes(user.rounds.round2.status)) {
@@ -359,6 +361,7 @@ router.put("/select-slot/:slotId", protectUserRoute, async (req, res) => {
         if (slot.users.length < max) {
           slot.users.push(user._id);
           slot.isAvailable = slot.users.length < max;
+          slot.status = "pending";
           user.rounds.round2.status = "pending";
         } else {
           return res.status(400).json({ message: "Slot is full" });
@@ -372,6 +375,7 @@ router.put("/select-slot/:slotId", protectUserRoute, async (req, res) => {
       }
       slot.users = [user._id];
       slot.isAvailable = false;
+      slot.status = "pending";
       user.rounds.round3.status = "pending";
     }
     await slot.save();
