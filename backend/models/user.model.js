@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import moment from "moment-timezone";
 
 const userSchema = new mongoose.Schema(
   {
@@ -115,6 +116,13 @@ const userSchema = new mongoose.Schema(
           type: String,
           default: null,
         },
+        taskDeadline: {
+          type: Date,
+        },
+        taskSubmitted: {
+          type: Boolean,
+          default: false,
+        },
         status: {
           type: String,
           enum: ["upcoming", "pending", "completed"],
@@ -137,6 +145,13 @@ const userSchema = new mongoose.Schema(
         taskLink: {
           type: String,
           default: null,
+        },
+        taskDeadline: {
+          type: Date,
+        },
+        taskSubmitted: {
+          type: Boolean,
+          default: false,
         },
         status: {
           type: String,
@@ -165,6 +180,13 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.set("toJSON", {
+  transform: (doc, ret) => {
+    ret.time = moment(ret.time).tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm");
+    return ret;
+  },
+});
 
 const User = mongoose.model("User", userSchema);
 

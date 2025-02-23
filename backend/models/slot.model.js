@@ -1,3 +1,4 @@
+import moment from "moment-timezone";
 import mongoose from "mongoose";
 
 const slotSchema = new mongoose.Schema(
@@ -10,6 +11,7 @@ const slotSchema = new mongoose.Schema(
     },
     time: {
       type: Date,
+      required: true,
     },
     isAvailable: {
       type: Boolean,
@@ -46,6 +48,13 @@ const slotSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+slotSchema.set("toJSON", {
+  transform: (doc, ret) => {
+    ret.time = moment(ret.time).tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm");
+    return ret;
+  },
+});
 
 const Slot = mongoose.model("Slot", slotSchema);
 

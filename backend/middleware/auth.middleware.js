@@ -3,7 +3,6 @@ import admin from "../lib/firebase.js";
 import Admin from "../models/admin.model.js";
 import User from "../models/user.model.js";
 
-// Middleware to authenticate Firebase user before logging in
 export const authenticateFirebaseUser = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -23,7 +22,6 @@ export const authenticateFirebaseUser = async (req, res, next) => {
   }
 };
 
-// Middleware to check if user is authenticated
 export const protectUserRoute = async (req, res, next) => {
   try {
     const accessToken = req.cookies.accessToken;
@@ -57,7 +55,6 @@ export const protectUserRoute = async (req, res, next) => {
   }
 };
 
-// Middleware to check if admin is authenticated
 export const protectAdminRoute = async (req, res, next) => {
   try {
     const accessToken = req.cookies.accessToken;
@@ -68,7 +65,7 @@ export const protectAdminRoute = async (req, res, next) => {
     }
     try {
       const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-      const admin = await Admin.findById(decoded.adminId);
+      const admin = await Admin.findById(decoded.userId);
       if (!admin) {
         return res
           .status(401)
@@ -91,7 +88,6 @@ export const protectAdminRoute = async (req, res, next) => {
   }
 };
 
-// Middleware to check if superadmin is authenticated
 export const protectSuperadminRoute = async (req, res, next) => {
   try {
     const admin = req.user;
