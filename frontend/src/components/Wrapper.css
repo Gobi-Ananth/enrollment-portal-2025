@@ -1,0 +1,75 @@
+.wrapper{
+    display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        background-color: #FCEEE3;
+        min-height: 88vh;
+        min-width: 80vw;
+        font-family: "Poppins", sans-serif;
+        position: relative;
+        border: solid black 3px;
+        box-shadow: 16px 16px 0px black;
+        margin-bottom: 3rem;
+        margin-top: 5rem;
+        font-family: "Cooper Hewitt", sans-serif;
+        font-weight: bold;
+}
+
+.btn{
+    border:none;
+    background: none;
+    cursor:pointer;
+    outline:none;
+}
+
+.upper-nav{
+    width: 100%;
+    height: 4rem;
+    background-color: #00171F;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding:10px 10px 0 10px;
+}
+
+.lower-nav{
+    width: 100%;
+    gap:10px;
+    background-color: #F1991B;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding:10px;
+}
+
+.nav-controls{
+   display: flex;
+   gap:10px;
+}
+
+.nav-controls button{
+    width: 3.5rem;
+}
+
+.nav-controls button object{
+    width:100%;
+}
+
+.ham{
+    margin-top:4px;
+}
+
+.address-bar{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 80%;
+    height:3.6rem;
+    background-color: #F2F2F2;
+    border:solid black 5px;
+    gap:10px;
+    padding: 0 10px 0 10px;
+    font-size: 1.5rem;
+    text-align: center;
+}

@@ -1,0 +1,126 @@
+.signup-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: #FCEEE3;
+    min-height: 88vh;
+    min-width: 80vw;
+    font-family: "Poppins", sans-serif;
+    position: relative;
+    padding: 20px;
+    border: solid black 3px;
+    border-radius: 20px;
+    box-shadow: 16px 16px 0px black;
+    margin-bottom: 3rem;
+    margin-top:5rem;
+    font-family: "Cooper Hewitt", sans-serif;
+    font-weight: bold;
+}
+
+header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.ieee-logo {
+    width: 11rem;
+    margin-bottom: 3rem;
+    margin-top:2rem;
+}
+
+h2 {
+    background-color: #00A8E8;
+    color: #00171F;
+    padding: 0.8rem 6rem;
+    border-radius: 24px;
+    display: inline-block;
+    font-size: 3.5rem;
+    border:solid black 4px;
+    box-shadow: 12px 12px 0px black;
+}
+
+
+
+.signup-box {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.signup-box p {
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: #2AC080;
+    margin-bottom: 3rem;
+}
+
+.google-signin {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap:10px;
+    background-color: black;
+    color: #F1991B;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 24rem;
+}
+
+.google-signin:hover {
+    background-color: #333;
+}
+
+.standing-guy {
+    position: absolute;
+    right:0.001%;
+    bottom:0;
+    width:14rem;
+    height: auto;
+}
+
+.arrow-icon {
+        position: absolute;
+        top: 0;
+        right: 0;
+        transform: translate(40%, -50%);
+        height: auto;
+        width: 10rem;
+}
+
+.banners{
+    position: absolute;
+    bottom:0;
+    left:0;
+    transform: translate(-30%, 20%);
+    height: auto;
+    width:24rem;
+}
+
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.social-links {
+    display: flex;
+    list-style: none;
+    gap: 15px;
+    padding: 0;
+}
+
+.social-links li a {
+    text-decoration: none;
+    color: black;
+    font-size: 1rem;
+}
+
+.social-links li a:hover {
+    text-decoration: underline;
+}
