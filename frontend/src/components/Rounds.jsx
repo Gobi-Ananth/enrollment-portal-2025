@@ -1,30 +1,28 @@
 import { useEffect, useState } from "react";
+import useUserStore from "../stores/useUserStore.js";
 
 import SvgButton from "./SvgButton";
+import ProgressBar from "./ProgressBar";
 
 import "./Rounds.css";
 
 const roundsData = [
-  { id: 0, label: "Round 0" },
-  { id: 1, label: "Round 1" },
-  { id: 2, label: "Round 2" },
-  { id: 3, label: "Round 3" },
+  { id: 0, label: "ROUND 0", bgColor: "#24B577" },
+  { id: 1, label: "ROUND 1", bgColor: "#FDE82D" },
+  { id: 2, label: "ROUND 2", bgColor: "#FF9F17" },
+  { id: 3, label: "ROUND 3", bgColor: "#F03F3F" },
 ];
 
 export default function Rounds() {
   const [currentRound, setCurrentRound] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(25);
 
-  //Gobi the data fethcing function
+  const { user } = useUserStore();
+
   useEffect(() => {
-    fetch("/api/user/")
-      .then((res) => res.json())
-      .then((data) => {
-        setCurrentRound(data.currentRound);
-        setProgress((data.currentRound + 1) * 25);
-      })
-      .catch((err) => console.error("Error fetching round progress:", err));
-  }, []);
+    setCurrentRound(user.currentRound);
+    setProgress((user.currentRound + 1) * 25);
+  }, [user.currentRound]);
 
   const getFolderIcon = (index) => {
     if (index < currentRound) {
@@ -37,7 +35,7 @@ export default function Rounds() {
   };
 
   return (
-    <main className="container">
+    <>
       <section className="rounds">
         {roundsData.map((round, index) => (
           <div key={round.id} className="round">
@@ -46,10 +44,10 @@ export default function Rounds() {
           </div>
         ))}
       </section>
-
-      <progress className="progress-bar" value="25" max="100">
-        START YOUR JOURNEY NOW
-      </progress>
-    </main>
+      <ProgressBar
+        bgcolor={roundsData[currentRound].bgColor}
+        completed={progress}
+      />
+    </>
   );
 }

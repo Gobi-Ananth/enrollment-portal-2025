@@ -18,9 +18,10 @@ export default function App() {
   useEffect(() => {
     checkUserAuth();
   }, [checkUserAuth]);
+
   return (
     <>
-      <Toaster position="top-right" reverseOrder={false} />
+      <Toaster position="top-center" reverseOrder={false} />
       <Router>
         <Routes>
           <Route
@@ -31,7 +32,7 @@ export default function App() {
             path="/"
             element={
               user ? (
-                <Wrapper>
+                <Wrapper title="https://enrollments.ieeevit.org/">
                   <Rounds />
                 </Wrapper>
               ) : (

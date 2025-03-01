@@ -40,7 +40,7 @@ export default function Wrapper({ title, children }) {
         </div>
       </section>
 
-      <section>{children}</section>
+      <section className="container">{children}</section>
     </main>
   );
 }

@@ -6,7 +6,7 @@ import { auth, provider, signInWithPopup } from "../config/firebase.js";
 const useUserStore = create((set) => ({
   user: null,
   loading: false,
-  checkingAuth: true,
+  checkingUserAuth: true,
 
   login: async () => {
     set({ loading: true });
@@ -26,12 +26,12 @@ const useUserStore = create((set) => ({
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.status === 200 || response.status === 201) {
-        set({ user: response.data });
+        set({ user: response.data.data });
         toast.success("Login successful");
       }
     } catch (err) {
       if (err.response) {
-        toast.error(err.response.data?.message || "Error occurred");
+        toast.error(err.response.data?.message || "An error occurred");
       } else if (err.request) {
         toast.error("No response from server");
       } else {
@@ -42,16 +42,62 @@ const useUserStore = create((set) => ({
     }
   },
 
-  checkUserAuth: async () => {
-    set({ checkingAuth: true });
+  logout: async () => {
     try {
-      const response = await axios.get("/user");
-
-      set({ user: response.data });
+      await axios.post("/user/logout");
+      set({ user: null });
     } catch (err) {
-      set({ checkingAuth: false, user: null });
+      toast.error(err.response?.data?.message || "An error occurred");
+    }
+  },
+
+  checkUserAuth: async () => {
+    set({ checkingUserAuth: true });
+    try {
+      const response = await axios.get("/user/");
+      set({ user: response.data.data, checkingUserAuth: false });
+    } catch (err) {
+      set({ checkingUserAuth: false, user: null });
+    }
+  },
+
+  refreshToken: async () => {
+    set({ checkingUserAuth: true });
+    try {
+      const response = await axios.post("/user/refresh-token");
+      set({ checkingUserAuth: false });
+      return response.data;
+    } catch (error) {
+      set({ user: null, checkingAuth: false });
+      throw error;
     }
   },
 }));
+
+let refreshPromise = null;
+
+axios.interceptors.response.use(
+  (response) => response,
+  async (err) => {
+    const originalRequest = err.config;
+    if (err.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        if (refreshPromise) {
+          await refreshPromise;
+          return axios(originalRequest);
+        }
+        refreshPromise = useUserStore.getState().refreshToken();
+        await refreshPromise;
+        refreshPromise = null;
+        return axios(originalRequest);
+      } catch (refreshErr) {
+        useUserStore.getState().logout();
+        return Promise.reject(refreshErr);
+      }
+    }
+    return Promise.reject(err);
+  }
+);
 
 export default useUserStore;
