@@ -1,7 +1,8 @@
 import { create } from "zustand";
-import axios from "../lib/axios.js";
+import axiosInstance from "../lib/axios.js";
 import { toast } from "react-hot-toast";
 import { auth, provider, signInWithPopup } from "../config/firebase.js";
+// import handleAxiosInterceptor from "../lib/axiosInterceptor.js";
 
 const useAdminStore = create((set) => ({
   admin: null,
@@ -12,7 +13,7 @@ const useAdminStore = create((set) => ({
     set({ loading: true });
     try {
       const result = await signInWithPopup(auth, provider);
-      const admin = result.admin;
+      const admin = result.user;
       if (!admin.email.endsWith(import.meta.env.VITE_EMAIL_DOMAIN)) {
         await auth.signOut();
         toast.error("Use VIT email");
@@ -20,7 +21,7 @@ const useAdminStore = create((set) => ({
         return;
       }
       const token = await admin.getIdToken();
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         "/admin",
         {},
         { headers: { Authorization: `Bearer ${token}` } }
@@ -44,7 +45,7 @@ const useAdminStore = create((set) => ({
 
   logout: async () => {
     try {
-      await axios.post("/admin/logout");
+      await axiosInstance.post("/admin/logout");
       set({ admin: null });
     } catch (err) {
       toast.error(err.response?.data?.message || "An error occurred");
@@ -54,9 +55,10 @@ const useAdminStore = create((set) => ({
   checkAdminAuth: async () => {
     set({ checkingAdminAuth: true });
     try {
-      const response = await axios.get("/admin/");
+      const response = await axiosInstance.get("/admin/");
       set({ admin: response.data.data, checkingAdminAuth: false });
     } catch (err) {
+      console.log(err.message);
       set({ checkingAdminAuth: false, admin: null });
     }
   },
@@ -64,7 +66,7 @@ const useAdminStore = create((set) => ({
   refreshToken: async () => {
     set({ checkingAdminAuth: true });
     try {
-      const response = await axios.post("/admin/refresh-token");
+      const response = await axiosInstance.post("/admin/refresh-token");
       set({ checkingAdminAuth: false });
       return response.data;
     } catch (error) {
@@ -73,31 +75,5 @@ const useAdminStore = create((set) => ({
     }
   },
 }));
-
-let refreshPromise = null;
-
-axios.interceptors.response.use(
-  (response) => response,
-  async (err) => {
-    const originalRequest = err.config;
-    if (err.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        if (refreshPromise) {
-          await refreshPromise;
-          return axios(originalRequest);
-        }
-        refreshPromise = useAdminStore.getState().refreshToken();
-        await refreshPromise;
-        refreshPromise = null;
-        return axios(originalRequest);
-      } catch (refreshErr) {
-        useAdminStore.getState().logout();
-        return Promise.reject(refreshErr);
-      }
-    }
-    return Promise.reject(err);
-  }
-);
 
 export default useAdminStore;

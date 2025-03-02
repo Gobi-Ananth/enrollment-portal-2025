@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import axios from "../lib/axios.js";
+import axiosInstance from "../lib/axios.js";
 import { toast } from "react-hot-toast";
 import { auth, provider, signInWithPopup } from "../config/firebase.js";
 
@@ -20,7 +20,7 @@ const useUserStore = create((set) => ({
         return;
       }
       const token = await user.getIdToken();
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         "/user",
         {},
         { headers: { Authorization: `Bearer ${token}` } }
@@ -44,7 +44,7 @@ const useUserStore = create((set) => ({
 
   logout: async () => {
     try {
-      await axios.post("/user/logout");
+      await axiosInstance.post("/user/logout");
       set({ user: null });
     } catch (err) {
       toast.error(err.response?.data?.message || "An error occurred");
@@ -54,9 +54,10 @@ const useUserStore = create((set) => ({
   checkUserAuth: async () => {
     set({ checkingUserAuth: true });
     try {
-      const response = await axios.get("/user/");
+      const response = await axiosInstance.get("/user/");
       set({ user: response.data.data, checkingUserAuth: false });
     } catch (err) {
+      console.log(err.message);
       set({ checkingUserAuth: false, user: null });
     }
   },
@@ -64,7 +65,7 @@ const useUserStore = create((set) => ({
   refreshToken: async () => {
     set({ checkingUserAuth: true });
     try {
-      const response = await axios.post("/user/refresh-token");
+      const response = await axiosInstance.post("/user/refresh-token");
       set({ checkingUserAuth: false });
       return response.data;
     } catch (error) {
@@ -73,31 +74,5 @@ const useUserStore = create((set) => ({
     }
   },
 }));
-
-let refreshPromise = null;
-
-axios.interceptors.response.use(
-  (response) => response,
-  async (err) => {
-    const originalRequest = err.config;
-    if (err.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        if (refreshPromise) {
-          await refreshPromise;
-          return axios(originalRequest);
-        }
-        refreshPromise = useUserStore.getState().refreshToken();
-        await refreshPromise;
-        refreshPromise = null;
-        return axios(originalRequest);
-      } catch (refreshErr) {
-        useUserStore.getState().logout();
-        return Promise.reject(refreshErr);
-      }
-    }
-    return Promise.reject(err);
-  }
-);
 
 export default useUserStore;
