@@ -103,3 +103,4 @@ export const protectSuperadminRoute = async (req, res, next) => {
       .json({ success: false, message: "Server error", error: err.message });
   }
 };
+  
