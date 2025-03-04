@@ -1,0 +1,112 @@
+.s-button{
+    font-family: "Cooper Hewitt", sans-serif;
+    font-weight: bold;
+    font-size: 3rem;
+    width:28rem;
+    padding:1.2rem 1.2rem;
+    background-color: black;
+    color: white;
+    border-radius: 16px;
+}
+
+.form-container{
+    height:32rem;
+    width:26rem;
+    background-color: #00A8E8;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding:1.3rem;
+}
+
+.question-box{
+    flex-grow: 1;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width:100%;
+    padding:0 10px;
+}
+
+.question-text{
+    font-size:1.2rem;
+    margin-bottom: 20px;
+}
+
+.navigation-buttons{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width:100%;
+}
+
+
+.textarea-question {
+}
+
+
+.multi-select-question {
+   
+}
+
+
+.text-input,
+.textarea-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 1.2rem;
+    border: 2px solid black;
+    border-radius: 5px;
+    font-family: monospace;
+}
+
+.textarea-input {
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        vertical-align: top;
+        text-align: left;
+        line-height: 1.2;
+        overflow-wrap: break-word;
+        white-space: pre-wrap;
+}
+
+
+.options-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.option-button {
+    background-color: #e0e0e0;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.option-button.selected {
+    background-color: #007bff;
+    color: white;
+}
+
+
+.error-text {
+    color: red;
+    font-size: 14px;
+}
+
+.review{
+    font-family: monospace;
+    margin-top:20px;
+    width:8rem;
+    padding:20px 24px;
+    font-size: 1.2rem;
+    border-radius: 16px;
+    background-color: #F1991B;
+}

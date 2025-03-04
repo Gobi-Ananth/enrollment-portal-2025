@@ -28,6 +28,11 @@ export const fetchUserData = async (req, res) => {
           ? {
               _id: slot._id,
               round: slot.round,
+              dateTime: slot.time
+                ? moment(slot.time)
+                    .tz("Asia/Kolkata")
+                    .format("YYYY-MM-DDTHH:mm:ss")
+                : null,
               isAvailable: slot.isAvailable,
               isReady: slot.isReady,
               meetLink: slot.meetLink,
@@ -177,7 +182,6 @@ export const round0Submission = async (req, res) => {
     const user = req.user;
     const {
       contactNo,
-      branch,
       githubProfile,
       projectLink,
       projectText,
@@ -195,11 +199,6 @@ export const round0Submission = async (req, res) => {
         success: false,
         message: "Valid contact number is required",
       });
-    }
-    if (!branch || branch.trim().length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Branch is required" });
     }
     if (
       githubProfile &&
@@ -219,21 +218,12 @@ export const round0Submission = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Only two domain are allowed" });
     }
-    if (
-      typeof managementQuestion !== "number" ||
-      ![1, 2, 3, 4, 5].includes(managementQuestion)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid management question",
-      });
-    }
     const answers = [
       answer1,
       answer2,
-      answer3,
+      // answer3,
       answer4,
-      answer5,
+      // answer5,
       managementAnswer,
     ];
     if (answers.some((ans) => !ans || ans.trim().length === 0)) {
@@ -241,19 +231,27 @@ export const round0Submission = async (req, res) => {
         .status(400)
         .json({ success: false, message: "All answers are required" });
     }
+    if (
+      typeof managementQuestion !== "number" ||
+      ![1, 2, 3].includes(managementQuestion)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid management question",
+      });
+    }
     if (user.currentRound === 0 && user.round0.status === "pending") {
       user.round0 = {
         contactNo,
-        branch,
         githubProfile: githubProfile || null,
         projectLink: projectLink || null,
         projectText: projectText || null,
         domain,
         answer1,
         answer2,
-        answer3,
+        answer3: answer3 || null,
         answer4,
-        answer5,
+        answer5: answer5 || null,
         managementQuestion,
         managementAnswer,
       };

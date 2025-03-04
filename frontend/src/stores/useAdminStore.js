@@ -2,7 +2,6 @@ import { create } from "zustand";
 import axiosInstance from "../lib/axios.js";
 import { toast } from "react-hot-toast";
 import { auth, provider, signInWithPopup } from "../config/firebase.js";
-// import handleAxiosInterceptor from "../lib/axiosInterceptor.js";
 
 const useAdminStore = create((set) => ({
   admin: null,
@@ -58,7 +57,6 @@ const useAdminStore = create((set) => ({
       const response = await axiosInstance.get("/admin/");
       set({ admin: response.data.data, checkingAdminAuth: false });
     } catch (err) {
-      console.log(err.message);
       set({ checkingAdminAuth: false, admin: null });
     }
   },

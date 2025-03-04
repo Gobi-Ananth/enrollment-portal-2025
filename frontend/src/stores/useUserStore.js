@@ -57,7 +57,6 @@ const useUserStore = create((set) => ({
       const response = await axiosInstance.get("/user/");
       set({ user: response.data.data, checkingUserAuth: false });
     } catch (err) {
-      console.log(err.message);
       set({ checkingUserAuth: false, user: null });
     }
   },

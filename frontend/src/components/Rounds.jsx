@@ -25,7 +25,9 @@ export default function Rounds() {
   }, [user.currentRound]);
 
   const getFolderIcon = (index) => {
-    if (index < currentRound) {
+    if (currentRound === 3 && user.round3Status === "complete") {
+      return `/assets/Rounds/round${index}-completed.svg`;
+    } else if (index < currentRound) {
       return `/assets/Rounds/round${index}-completed.svg`;
     } else if (index === currentRound) {
       return `/assets/Rounds/round${index}-progress.svg`;
