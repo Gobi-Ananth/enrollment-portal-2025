@@ -21,7 +21,8 @@
 }
 
 .form-container {
-  height: 32rem;
+  min-height: 30rem;
+  height: auto;
   width: 26rem;
   background-color: #f1991b;
   border-radius: 16px;

@@ -1,3 +1,4 @@
+import React from "react";
 import styled from "styled-components";
 
 const ProgressBarContainer = styled.section`
@@ -7,7 +8,7 @@ const ProgressBarContainer = styled.section`
   border-radius: 50px;
   border: solid black 4px;
   overflow: hidden;
-  margin-top: 5rem;
+  margin: 5rem 0;
 
   @media (max-width: 720px) {
     height: 25px;
@@ -35,19 +36,37 @@ const ProgressFill = styled.div`
   }
 `;
 
-export default function ProgressBar({ bgcolor, completed }) {
+const DefaultText = styled.div`
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 720px) {
+    font-size: 0.7rem;
+  }
+`;
+
+export default function ProgressBar({ bgcolor, completed = 0 }) {
   return (
     <ProgressBarContainer aria-label="Progress bar">
-      <ProgressFill
-        $bgcolor={bgcolor}
-        role="progressbar"
-        aria-valuenow={completed}
-        $completed={completed}
-        aria-valuemin="0"
-        aria-valuemax="100"
-      >
-        {completed}%
-      </ProgressFill>
+      {completed === 0 ? (
+        <DefaultText>
+          <span>Start Your Journey Now</span>
+        </DefaultText>
+      ) : (
+        <ProgressFill
+          $bgcolor={bgcolor}
+          role="progressbar"
+          aria-valuenow={completed}
+          $completed={completed}
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          {completed}%
+        </ProgressFill>
+      )}
     </ProgressBarContainer>
   );
 }
