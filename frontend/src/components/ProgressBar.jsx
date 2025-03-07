@@ -24,17 +24,29 @@ export default function ProgressBar({ bgcolor, completed }) {
     transition: "width 0.4s ease-in-out, background-color 0.3s ease-in-out",
   };
 
+  const defaultStyles = {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  };
+
   return (
     <section aria-label="Progress bar" style={progressBarStyles}>
-      <div
-        style={progressFillStyles}
-        role="progressbar"
-        aria-valuenow={completed}
-        aria-valuemin="0"
-        aria-valuemax="100"
-      >
-        <span>{`${completed}%`}</span>
-      </div>
+      {completed === 0 ? (
+        <span style={defaultStyles}>Start Your Journey Now</span>
+      ) : (
+        <div
+          style={progressFillStyles}
+          role="progressbar"
+          aria-valuenow={completed}
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <span>{`${completed}%`}</span>
+        </div>
+      )}
     </section>
   );
 }

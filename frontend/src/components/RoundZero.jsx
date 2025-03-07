@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useLocation, Navigate, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import "./RoundZero.css";
 import LeftOption from "../assets/LeftOptions.svg";
 import RightOption from "../assets/RightOption.svg";
-import axiosInstance from "../lib/axios";
-import toast from "react-hot-toast";
+import axiosInstance from "../lib/axios.js";
+import useUserStore from "../stores/useUserStore.js";
 
 const predefinedRandomQuestions = [
   {
@@ -113,10 +115,17 @@ export default function RoundZero() {
   const [errors, setErrors] = useState({});
   const [questions, setQuestions] = useState(baseQuestions);
   const [randomQuestionSet, setRandomQuestionSet] = useState(false);
+  const { checkUserAuth } = useUserStore();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     sessionStorage.setItem("formAnswers", JSON.stringify(answers));
   }, [answers]);
+
+  if (!location.state?.allowed) {
+    return <Navigate to="/" />;
+  }
 
   const handleStart = () => {
     setFormStarted(true);
@@ -208,6 +217,8 @@ export default function RoundZero() {
       answers["managementQuestion"] = managementQuestion;
       const response = await axiosInstance.post("/user/r0-submission", answers);
       toast.success(response.data.message);
+      checkUserAuth();
+      navigate("/");
     } catch (err) {
       if (err.response) {
         toast.error(err.response.data?.message || "An error occurred");

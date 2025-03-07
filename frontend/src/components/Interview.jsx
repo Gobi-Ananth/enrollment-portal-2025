@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import Calendar from "react-calendar";
 import axiosInstance from "../lib/axios.js";
 import "react-calendar/dist/Calendar.css";
 import "./Interview.css";
-import toast from "react-hot-toast";
+import useUserStore from "../stores/useUserStore.js";
 
 export default function Interview() {
   const [availableDates, setAvailableDates] = useState([]);
@@ -11,6 +13,9 @@ export default function Interview() {
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, checkUserAuth } = useUserStore();
 
   useEffect(() => {
     fetchAvailableDates();
@@ -32,6 +37,10 @@ export default function Interview() {
       toast.error("Error fetching available dates");
     }
   };
+
+  if (!location.state?.allowed || user.slot) {
+    return <Navigate to="/" />;
+  }
 
   const fetchSlots = async (selectedDate) => {
     setLoading(true);
@@ -80,10 +89,10 @@ export default function Interview() {
     try {
       await axiosInstance.put(`/user/select-slot/${selectedSlot._id}`);
       toast.success("Slot booked successfully!");
-      setSelectedSlot(null);
-      fetchSlots(date);
+      await checkUserAuth();
+      navigate("/meet", { state: { allowed: true } });
     } catch (err) {
-      toast.error(error.response?.data?.message || "Something went wrong!");
+      toast.error(err.response?.data?.message || "Something went wrong!");
     }
   };
 

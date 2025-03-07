@@ -1,7 +1,7 @@
-export default function SvgButton({ svgLabel }) {
+export default function SvgButton({ svgLabel, onClick }) {
   return (
-    <button className="btn" aria-label="Minimize">
-      <object type="image/svg+xml" data={svgLabel}></object>
+    <button className="btn" aria-label={svgLabel} onClick={onClick}>
+      <img src={svgLabel} />
     </button>
   );
 }

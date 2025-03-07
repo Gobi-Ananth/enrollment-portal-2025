@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useUserStore from "../stores/useUserStore.js";
 
 import SvgButton from "./SvgButton";
@@ -15,13 +16,14 @@ const roundsData = [
 
 export default function Rounds() {
   const [currentRound, setCurrentRound] = useState(0);
-  const [progress, setProgress] = useState(25);
+  const [progress, setProgress] = useState(0);
+  const navigate = useNavigate();
 
   const { user } = useUserStore();
 
   useEffect(() => {
     setCurrentRound(user.currentRound);
-    setProgress((user.currentRound + 1) * 25);
+    setProgress(user.currentRound * 25);
   }, [user.currentRound]);
 
   const getFolderIcon = (index) => {
@@ -36,18 +38,68 @@ export default function Rounds() {
     }
   };
 
+  const checkCurrentRound = (index) => index === currentRound;
+  const liveRound = Number(import.meta.env.VITE_LIVE_ROUND);
+
+  const handleRoundClick = (index) => {
+    console.log(currentRound, liveRound, user);
+
+    const roundStatuses = [
+      user.round0Status,
+      user.round1Status,
+      user.round2Status,
+      user.round3Status,
+    ];
+
+    if (roundStatuses[index] === "completed") {
+      navigate(index === 0 || index === 3 ? "/completed" : "/task", {
+        state: { allowed: true },
+      });
+      return;
+    }
+
+    if (currentRound === index && liveRound === index - 1) {
+      navigate("/upcoming", { state: { allowed: true } });
+      return;
+    }
+
+    if (index <= currentRound && currentRound < liveRound) {
+      navigate("/missed", { state: { allowed: true } });
+      return;
+    }
+
+    if (checkCurrentRound(index)) {
+      if (!user.slot && index !== 0) {
+        navigate("/slots", { state: { allowed: true } });
+        return;
+      }
+      if (user.slot && index !== 0) {
+        navigate("/meet", { state: { allowed: true } });
+        return;
+      }
+      if (index === 0 && user.round0Status === "pending") {
+        navigate("/round0", { state: { allowed: true } });
+      }
+    }
+  };
+
   return (
     <>
       <section className="rounds">
         {roundsData.map((round, index) => (
           <div key={round.id} className="round">
-            <SvgButton svgLabel={getFolderIcon(index)} />
+            <SvgButton
+              svgLabel={getFolderIcon(index)}
+              onClick={() => handleRoundClick(index)}
+            />
             <p>{round.label}</p>
           </div>
         ))}
       </section>
       <ProgressBar
-        bgcolor={roundsData[currentRound].bgColor}
+        bgcolor={
+          currentRound > 0 ? roundsData[currentRound - 1].bgColor : "#FFF"
+        }
         completed={progress}
       />
     </>

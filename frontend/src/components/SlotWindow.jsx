@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { Calendar, Clock } from "lucide-react";
 import moment from "moment-timezone";
 import "./SlotWindow.css";
-import useUserStore from "../stores/useUserStore";
-import toast from "react-hot-toast";
-import axiosInstance from "../lib/axios";
+import useUserStore from "../stores/useUserStore.js";
+import axiosInstance from "../lib/axios.js";
 
 export default function SlotWindow() {
   const { user, checkUserAuth } = useUserStore();
+  const location = useLocation();
 
   const istDateTime = moment(user.slot.dateTime).tz("Asia/Kolkata");
   const [slot] = useState({
@@ -35,6 +37,10 @@ export default function SlotWindow() {
       setStatus("ready");
     }
   }, [currentTime, slot.time, status]);
+
+  if (!location.state?.allowed) {
+    return <Navigate to="/" />;
+  }
 
   const handleReadyClick = async () => {
     try {

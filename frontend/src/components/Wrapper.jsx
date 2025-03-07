@@ -17,8 +17,8 @@ export default function Wrapper({ title, children }) {
     <main className="wrapper">
       <section className="upper-nav">
         <div className="tab">
-          <object data={Tab} type="image/svg+xml"></object>
-          <object data={Plus} type="image/svg+xml"></object>
+          <img src={Tab} alt="IEEE VIT TAB" />
+          <img src={Plus} alt="Plus" />
         </div>
         <div className="window-controls">
           <SvgButton svgLabel={Minimize} />
@@ -32,10 +32,10 @@ export default function Wrapper({ title, children }) {
           <SvgButton svgLabel={Right} />
         </div>
         <div className="address-bar">
-          <object data={Lock} type="image/svg+xml"></object>
-          <h3 className="text">{title}</h3>
+          <img src={Lock} />
+          <h3 className="text">gopal</h3>
         </div>
-        <div className="nav-controls">
+        <div className="nav-ham">
           <SvgButton svgLabel={Hamburger} />
         </div>
       </section>

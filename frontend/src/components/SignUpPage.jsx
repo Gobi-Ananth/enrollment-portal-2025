@@ -9,9 +9,9 @@ import GithubLogo from "../assets/github.svg";
 import LinkedinLogo from "../assets/Linkedin.svg";
 import GoogleLogo from "../assets/google.svg";
 
-import "./SignUpPage.css";
-import useUserStore from "../stores/useUserStore";
 import { useState } from "react";
+import "./SignUpPage.css";
+import useUserStore from "../stores/useUserStore.js";
 
 export default function SignUpPage() {
   const { login, loading } = useUserStore();
@@ -22,6 +22,7 @@ export default function SignUpPage() {
     await login();
     setDisabled(false);
   };
+
   return (
     <>
       <div className="signup-container">
@@ -57,17 +58,17 @@ export default function SignUpPage() {
       <footer>
         <ul className="social-links">
           <li>
-            <a href="#">
+            <a href="https://www.instagram.com/ieeevitvellore/">
               <img src={InstagramLogo} alt="Instagram Logo" />
             </a>
           </li>
           <li>
-            <a href="#">
+            <a href="https://x.com/ieeevitvellore">
               <img src={TwitterLogo} alt="Twitter Lgoo" />
             </a>
           </li>
           <li>
-            <a href="#">
+            <a href="https://github.com/ieee-vit">
               <img src={GithubLogo} alt="Github Logo" />
             </a>
           </li>
@@ -77,7 +78,7 @@ export default function SignUpPage() {
             </a>
           </li>
           <li>
-            <a href="#">
+            <a href="https://www.linkedin.com/company/ieee-vit-vellore/">
               <img src={LinkedinLogo} alt="Linkedin Logo" />
             </a>
           </li>

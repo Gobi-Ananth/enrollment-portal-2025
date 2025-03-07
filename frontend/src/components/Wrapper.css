@@ -48,8 +48,8 @@
   gap: 10px;
 }
 
-.nav-controls button {
-  width: 3.5rem;
+.nav-ham {
+  margin-top: 2px;
 }
 
 .nav-controls button object {
@@ -81,4 +81,45 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+@media (max-width: 720px) {
+  .window-controls img {
+    width: 1.4rem;
+  }
+
+  .upper-nav {
+    height: 2.4rem;
+  }
+
+  .upper-nav img {
+    height: 1.4rem;
+  }
+
+  .nav-controls {
+    gap: 2px;
+    & img {
+      height: 100%;
+      width: 1.6rem;
+    }
+  }
+
+  .lower-nav {
+    height: 3.2rem;
+  }
+
+  .nav-ham img {
+    width: 1.6rem;
+  }
+
+  .address-bar {
+    height: 100%;
+    font-size: 0.7rem;
+    gap: 2px;
+    padding: 0 2px 0 2px;
+  }
+
+  .address-bar img {
+    width: 0.8rem;
+  }
 }
