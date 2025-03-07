@@ -30,7 +30,7 @@ export default function SignUpPage() {
           <img src={IEEELogo} alt="IEEE Logo" className="ieee-logo" />
 
           <div>
-            <h2>IEEE ENROLLMENTS</h2>
+            <h2>ENROLLMENTS</h2>
           </div>
         </header>
 
@@ -41,7 +41,7 @@ export default function SignUpPage() {
             onClick={handleLogin}
             disabled={loading || disabled}
           >
-            {!loading && <img src={GoogleLogo} alt="google logo" />}
+            {!loading && <img src={GoogleLogo} alt="google" />}
             {loading ? "LOGGING IN..." : "SIGN IN WITH GOOGLE"}
           </button>
         </section>

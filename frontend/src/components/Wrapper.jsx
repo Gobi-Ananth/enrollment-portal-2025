@@ -33,7 +33,7 @@ export default function Wrapper({ title, children }) {
         </div>
         <div className="address-bar">
           <img src={Lock} />
-          <h3 className="text">gopal</h3>
+          <h3 className="text">{title}</h3>
         </div>
         <div className="nav-ham">
           <SvgButton svgLabel={Hamburger} />

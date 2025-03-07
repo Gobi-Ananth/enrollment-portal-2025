@@ -8,6 +8,9 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (err) => {
     const originalRequest = err.config;
+    if (originalRequest.url.includes("/refresh-token")) {
+      return Promise.reject(err);
+    }
     if (err.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {

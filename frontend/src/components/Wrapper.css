@@ -5,15 +5,13 @@
   text-align: center;
   background-color: #fceee3;
   min-height: 88vh;
-  min-width: 80vw;
-  font-family: "Poppins", sans-serif;
+  width: 80vw;
+  font-family: "Cooper Hewitt", sans-serif;
+  font-weight: bold;
   position: relative;
   border: solid black 3px;
   box-shadow: 16px 16px 0px black;
-  margin-bottom: 3rem;
-  margin-top: 5rem;
-  font-family: "Cooper Hewitt", sans-serif;
-  font-weight: bold;
+  margin: 5rem 0 3rem;
 }
 
 .btn {
@@ -33,12 +31,22 @@
   padding: 10px 10px 0 10px;
 }
 
+.tab {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.window-controls {
+  display: flex;
+  align-items: center;
+}
+
 .lower-nav {
   width: 100%;
-  gap: 10px;
   background-color: #f1991b;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   padding: 10px;
 }
@@ -46,10 +54,13 @@
 .nav-controls {
   display: flex;
   gap: 10px;
+  flex: 0 0 auto;
 }
 
 .nav-ham {
   margin-top: 2px;
+  flex: 0 0 auto;
+  min-width: 30px;
 }
 
 .nav-controls button object {
@@ -64,14 +75,28 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  width: 80%;
+  flex: 1;
+  margin: 0 10px;
+  max-width: calc(100% - 250px);
   height: 3.6rem;
   background-color: #f2f2f2;
   border: solid black 5px;
   gap: 10px;
-  padding: 0 10px 0 10px;
+  padding: 0 10px;
   font-size: 1.5rem;
-  text-align: center;
+}
+
+.address-bar img {
+  flex-shrink: 0;
+}
+
+.address-bar h3.text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  text-align: left;
+  width: 100%;
 }
 
 .container {
@@ -84,6 +109,10 @@
 }
 
 @media (max-width: 720px) {
+  .wrapper {
+    box-shadow: 10px 10px 0px black;
+  }
+
   .window-controls img {
     width: 1.4rem;
   }
@@ -96,16 +125,25 @@
     height: 1.4rem;
   }
 
+  .tab {
+    margin-top: 4px;
+  }
+
   .nav-controls {
     gap: 2px;
-    & img {
-      height: 100%;
-      width: 1.6rem;
-    }
+  }
+
+  .nav-controls img {
+    height: 100%;
+    width: 1.6rem;
   }
 
   .lower-nav {
     height: 3.2rem;
+  }
+
+  .nav-ham {
+    min-width: 20px;
   }
 
   .nav-ham img {
@@ -116,7 +154,10 @@
     height: 100%;
     font-size: 0.7rem;
     gap: 2px;
-    padding: 0 2px 0 2px;
+    padding: 0 5px;
+    border-width: 3px;
+    margin: 0 5px;
+    max-width: calc(100% - 86px);
   }
 
   .address-bar img {

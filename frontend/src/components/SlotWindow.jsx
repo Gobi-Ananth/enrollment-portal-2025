@@ -12,7 +12,9 @@ export default function SlotWindow() {
   const { user, checkUserAuth } = useUserStore();
   const location = useLocation();
 
-  const istDateTime = moment(user.slot.dateTime).tz("Asia/Kolkata");
+  const istDateTime = moment(user.slot?.dateTime || new Date()).tz(
+    "Asia/Kolkata"
+  );
   const [slot] = useState({
     date: istDateTime.format("D MMMM YYYY"),
     time: istDateTime.format("HH:mm"),

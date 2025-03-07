@@ -48,7 +48,7 @@ const baseQuestions = [
   {
     id: "domain",
     type: "multi-select",
-    label: "Select your domains (Min: 1, Max: 2)",
+    label: "Select your domains(Min: 1, Max: 2)",
     required: true,
     options: [
       "APP DEV",
@@ -115,7 +115,7 @@ export default function RoundZero() {
   const [errors, setErrors] = useState({});
   const [questions, setQuestions] = useState(baseQuestions);
   const [randomQuestionSet, setRandomQuestionSet] = useState(false);
-  const { checkUserAuth } = useUserStore();
+  const { user, checkUserAuth } = useUserStore();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -123,7 +123,7 @@ export default function RoundZero() {
     sessionStorage.setItem("formAnswers", JSON.stringify(answers));
   }, [answers]);
 
-  if (!location.state?.allowed) {
+  if (!location.state?.allowed || user.Round0Status === "completed") {
     return <Navigate to="/" />;
   }
 
@@ -149,27 +149,32 @@ export default function RoundZero() {
 
   const handleNext = () => {
     let newErrors = { ...errors };
-    if (
-      questions[currentQuestion].required &&
-      !answers[questions[currentQuestion].id]
-    ) {
-      newErrors[questions[currentQuestion].id] = "This question is required.";
-      setErrors(newErrors);
-      return;
-    } else {
-      delete newErrors[questions[currentQuestion].id];
-      setErrors(newErrors);
+    const question = questions[currentQuestion];
+    if (question.required) {
+      if (question.type === "multi-select") {
+        const selected = answers[question.id] || [];
+        if (selected.length < question.min) {
+          newErrors[
+            question.id
+          ] = `Please select at least ${question.min} option.`;
+          setErrors(newErrors);
+          return;
+        }
+      } else if (!answers[question.id]) {
+        newErrors[question.id] = "Mandatory Question";
+        setErrors(newErrors);
+        return;
+      }
     }
+    delete newErrors[question.id];
+    setErrors(newErrors);
 
-    if (questions[currentQuestion].id === "contactNo") {
+    if (question.id === "contactNo" && answers["contactNo"]) {
       const phoneRegex = /^[0-9]{10}$/;
       if (!phoneRegex.test(answers["contactNo"])) {
         newErrors["contactNo"] = "Invalid phone number.";
         setErrors(newErrors);
         return;
-      } else {
-        delete newErrors["contactNo"];
-        setErrors(newErrors);
       }
     }
 
@@ -257,43 +262,65 @@ export default function RoundZero() {
                 : "text-question"
             }`}
           >
-            <p className="question-text">{questions[currentQuestion].label}</p>
+            <p className="question-text">
+              {questions[currentQuestion].label}
+              {questions[currentQuestion].required && (
+                <span className="required-indicator">*</span>
+              )}
+            </p>
 
             {questions[currentQuestion].type === "multi-select" ? (
-              <div className="options-container">
-                {questions[currentQuestion].options.map((option) => (
-                  <button
-                    key={option}
-                    className={`option-button ${
-                      answers[questions[currentQuestion].id]?.includes(option)
-                        ? "selected"
-                        : ""
-                    }`}
-                    onClick={() => handleMultiSelect(option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            ) : (
               <>
-                <input
-                  className={`input-field ${
-                    questions[currentQuestion].type === "textarea"
-                      ? "textarea-input"
-                      : "text-input"
-                  }`}
-                  type={
-                    questions[currentQuestion].type === "textarea"
-                      ? "textarea"
-                      : "text"
-                  }
+                <div className="options-container">
+                  {questions[currentQuestion].options.map((option) => (
+                    <button
+                      key={option}
+                      className={`option-button ${
+                        answers[questions[currentQuestion].id]?.includes(option)
+                          ? "selected"
+                          : ""
+                      }`}
+                      onClick={() => handleMultiSelect(option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+                {errors[questions[currentQuestion].id] && (
+                  <p className="error-text">
+                    {errors[questions[currentQuestion].id]}
+                  </p>
+                )}
+              </>
+            ) : questions[currentQuestion].type === "textarea" ? (
+              <>
+                <textarea
+                  className="textarea-input"
                   value={answers[questions[currentQuestion].id] || ""}
                   onChange={handleChange}
                   maxLength={500}
+                ></textarea>
+                {errors[questions[currentQuestion].id] && (
+                  <p className="error-tex">
+                    {errors[questions[currentQuestion].id]}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <input
+                  className={`text-input ${
+                    questions[currentQuestion].required ? "required" : ""
+                  }`}
+                  type="text"
+                  value={answers[questions[currentQuestion].id] || ""}
+                  onChange={handleChange}
+                  maxLength={500}
+                  aria-required={questions[currentQuestion].required}
+                  aria-invalid={!!errors[questions[currentQuestion].id]}
                 />
                 {errors[questions[currentQuestion].id] && (
-                  <p className="error-text text-danger">
+                  <p className="error-text">
                     {errors[questions[currentQuestion].id]}
                   </p>
                 )}

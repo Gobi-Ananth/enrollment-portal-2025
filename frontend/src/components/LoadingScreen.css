@@ -1,0 +1,45 @@
+.bar-container {
+  width: 18rem;
+  height: 4rem;
+  border: 4px solid black;
+  border-radius: 8px;
+  display: flex;
+}
+
+.segments-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+}
+
+.segment {
+  height: 100%;
+  margin: 0 2px;
+  flex: 1;
+  transition: background-color 0.2s;
+}
+
+.filled-segment {
+  background-color: #0a192f;
+}
+
+.empty-segment {
+  background-color: transparent;
+}
+
+.bar-text {
+  font-size: 1.2rem;
+  margin-top: 20px;
+}
+
+@media (max-width: 720px) {
+  .bar-container {
+    width: 12rem;
+    height: 3rem;
+  }
+
+  .bar-text {
+    font-size: 0.8rem;
+  }
+}

@@ -1,7 +1,11 @@
 .rounds {
+  width: 80%;
   display: flex;
   gap: 4rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin: 20px 0;
 }
 
 .round {
@@ -16,14 +20,17 @@
   font-size: 2rem;
 }
 
-.folder-icon {
-  width: 60px;
-  height: 60px;
+.round img {
+  width: 11rem;
 }
 
-.progress-bar {
-  width: 80%;
-  height: 25px;
-  border-radius: 24px;
-  margin-bottom: 20px;
+@media (max-width: 720px) {
+  .rounds {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .round img {
+    width: 7rem;
+  }
 }

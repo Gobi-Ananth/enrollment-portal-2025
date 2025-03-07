@@ -68,7 +68,7 @@ const useUserStore = create((set) => ({
       set({ checkingUserAuth: false });
       return response.data;
     } catch (error) {
-      set({ user: null, checkingAuth: false });
+      set({ user: null, checkingUserAuth: false });
       throw error;
     }
   },
