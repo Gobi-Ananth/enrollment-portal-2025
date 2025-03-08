@@ -170,9 +170,18 @@ export default function RoundZero() {
     setErrors(newErrors);
 
     if (question.id === "contactNo" && answers["contactNo"]) {
-      const phoneRegex = /^[0-9]{10}$/;
+      const phoneRegex = /^[6789]\d{9}$/;
       if (!phoneRegex.test(answers["contactNo"])) {
         newErrors["contactNo"] = "Invalid phone number.";
+        setErrors(newErrors);
+        return;
+      }
+    }
+
+    if (question.id === "githubProfile" && answers["githubProfile"]) {
+      const phoneRegex = /^https:\/\/github\.com\/[a-zA-Z0-9-]+\/?$/;
+      if (!phoneRegex.test(answers["githubProfile"])) {
+        newErrors["githubProfile"] = "Invalid phone number.";
         setErrors(newErrors);
         return;
       }

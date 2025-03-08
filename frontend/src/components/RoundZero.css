@@ -126,7 +126,7 @@
 }
 
 .error-text {
-  color: #f83c3c;
+  color: white;
   font-size: 14px;
   margin-top: 8px;
   width: 100%;
@@ -151,7 +151,7 @@
 }
 
 .required-indicator {
-  color: #f83c3c;
+  color: white;
   margin-left: 4px;
 }
 
